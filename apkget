@@ -1,0 +1,72 @@
+#!/bin/sh
+
+usage()
+{
+   echo "Usage $0 OPTIONS <package_name>"
+   echo "       OPTIONS:"
+   echo "            -d    Force device"
+   echo "            -e    Force emulator"
+   echo "            -s    Search for package"
+   echo "            -p    Pull package"
+   echo "            -h    Prints this menu"
+   exit 1
+}
+
+if [ $# -lt 1 ] ; then
+   usage
+fi
+
+emulator=0
+device=0
+package=""
+search=""
+
+#Process the arguments
+while getopts hdep:s: opt
+do
+   case "$opt" in
+      d) device=1;;
+      e) emulator=1;;
+      h) usage;;
+      p) package=$OPTARG;;
+      s) search=$OPTARG;;
+      \?) usage;;
+   esac
+done
+
+if [ $device -eq 1 -a $emulator -eq 1 ]; then
+   echo "[ERROR] You can only use \"-d\" OR \"-e\""
+   usage
+fi
+
+if [ "$package" == "" -a "$search" == "" ]; then
+   echo "[ERROR] You must supply \"-s\" OR \"-p\"!"
+   usage
+fi
+
+if [ "$package" != "" -a "$search" != "" ]; then
+   echo "[ERROR] You can only supply \"-s\" OR \"-p\""
+   usage
+fi
+
+adb="adb"
+[[ $device -eq 1 ]] && adb="adb -d"  
+[[ $emulator -eq 1 ]] && adb="adb -e"
+
+if [ $search ]; then
+   echo "Searching for \"${search}\"..."
+   $adb shell "cat /data/system/packages.list"|grep "$search"|awk '{print $1}'
+   exit 0
+else
+   echo "Attempting to pull \"${package}\"..."
+   package_path=$($adb shell pm path ${package} | tr -d '\r' |awk -F":" '{print $2}')
+
+   if [ $package_path ]; then
+      echo "Found match \"${package_path}\""
+      $adb pull $package_path
+      exit 0
+   else
+      echo "No packages match the string \"${package}\""
+      exit 1
+   fi
+fi
