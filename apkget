@@ -55,7 +55,7 @@ adb="adb"
 
 if [ $search ]; then
    echo "Searching for \"${search}\"..."
-   $adb shell "cat /data/system/packages.list"|grep "$search"|awk '{print $1}'
+   $adb shell "pm list packages"|grep "$search"|awk '{print $1}'
    exit 0
 else
    echo "Attempting to pull \"${package}\"..."
