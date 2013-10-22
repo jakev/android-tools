@@ -16,7 +16,9 @@ A shell script to search for APK files on a device or emulator, and pull them do
 **Usage:**
 
 Searching for a package containg the string "jake":
+
 	root@analysis# apkget -s jake
 	
 Pulling a package off of a physical device:
+
 	root@anaylsis# apkget -d -p com.jakev.testing
