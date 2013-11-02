@@ -6,6 +6,7 @@ usage()
    echo "       OPTIONS:"
    echo "            -d    Force device"
    echo "            -e    Force emulator"
+   echo "            -o    Pull package's ODEX"
    echo "            -s    Search for package"
    echo "            -p    Pull package"
    echo "            -h    Prints this menu"
@@ -20,14 +21,16 @@ emulator=0
 device=0
 package=""
 search=""
+odex=""
 
 #Process the arguments
-while getopts hdep:s: opt
+while getopts hdeo:p:s: opt
 do
    case "$opt" in
       d) device=1;;
       e) emulator=1;;
       h) usage;;
+      o) odex=$OPTARG;;
       p) package=$OPTARG;;
       s) search=$OPTARG;;
       \?) usage;;
@@ -39,13 +42,13 @@ if [ $device -eq 1 -a $emulator -eq 1 ]; then
    usage
 fi
 
-if [ "$package" == "" -a "$search" == "" ]; then
-   echo "[ERROR] You must supply \"-s\" OR \"-p\"!"
+if [ "$package" == "" -a "$search" == "" -a "$odex" == "" ]; then
+   echo "[ERROR] You must supply \"-s,\" \"-o,\" or \"-p\"!"
    usage
 fi
 
-if [ "$package" != "" -a "$search" != "" ]; then
-   echo "[ERROR] You can only supply \"-s\" OR \"-p\""
+if [ "$package" != "" -a "$search" != "" -a "$odex" != "" ]; then
+   echo "[ERROR] You can only supply \"-s,\" \"-o,\" or \"-p\""
    usage
 fi
 
@@ -57,7 +60,7 @@ if [ $search ]; then
    echo "Searching for \"${search}\"..."
    $adb shell "pm list packages"|grep "$search"|awk '{print $1}'
    exit 0
-else
+elif [ $package ]; then
    echo "Attempting to pull \"${package}\"..."
    package_path=$($adb shell pm path ${package} | tr -d '\r' |awk -F":" '{print $2}')
 
@@ -67,6 +70,18 @@ else
       exit 0
    else
       echo "No packages match the string \"${package}\""
+      exit 1
+   fi
+elif [ $odex ]; then
+   echo "Attempting to pull \"${odex}\"'s ODEX file..."
+   package_path=$($adb shell pm path ${odex} | tr -d '\r' |awk -F":" '{print $2}'|sed 's/\.apk/\.odex/g')
+
+   if [ $package_path ]; then
+      echo "Found match \"${package_path}\""
+      $adb pull $package_path
+      exit 0
+   else
+      echo "No packages match the string \"${odex}\" or ODEX does not exist"
       exit 1
    fi
 fi
