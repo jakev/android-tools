@@ -17,8 +17,16 @@ A shell script to search for APK files on a device or emulator, and pull them do
 
 Searching for a package containg the string "jake":
 
-	root@analysis# apkget -s jake
+	root@analysis# ./apkget -s jake
 	
 Pulling a package off of a physical device:
 
-	root@anaylsis# apkget -d -p com.jakev.testing
+	root@anaylsis# ./apkget -d -p com.jakev.testing
+
+sendsecretcode
+--------------
+A shell script to make it easier to send SECRET_CODE intents.
+
+sending the SECRET_CODE intent with the host "jakesecret":
+
+	root@analysis# ./sendsecretcode jakesecret
