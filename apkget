@@ -56,9 +56,13 @@ adb="adb"
 [[ $device -eq 1 ]] && adb="adb -d"  
 [[ $emulator -eq 1 ]] && adb="adb -e"
 
+echo -n "Waiting for device..."
+$adb wait-for-device
+echo "OK"
+
 if [ $search ]; then
    echo "Searching for \"${search}\"..."
-   $adb shell "pm list packages"|grep "$search"|awk '{print $1}'
+   $adb shell "pm list packages"|grep -i "$search"|awk '{print $1}'
    exit 0
 elif [ $package ]; then
    echo "Attempting to pull \"${package}\"..."
